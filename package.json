@@ -1,0 +1,32 @@
+{
+  "name": "cle-en-main-commercial",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Plateforme de l'agence (nom provisoire : Clé en main Commercial) — étape 2 : formulaire intelligent",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "demo:build": "vite build --config demo/vite.config.ts"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "lucide-react": "^0.548.0",
+    "next": "^15.5.29",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/leaflet": "1.9",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19.3.1",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^5.0.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.1.12",
+    "vite-plugin-singlefile": "^2.3.0",
+    "vitest": "^3.2.4"
+  }
+}
