@@ -2,6 +2,7 @@ import type { Langue, T } from './i18n';
 import { formatNombre, tf } from './i18n';
 import { AIDE, type Champ, type Ecran, type Loyer, type Reponses, type Superficie } from './types';
 import { champVisible, ecransVisibles, types } from './ecrans';
+import { fourchettePour } from './referentiels';
 
 // ---------------------------------------------------------------------------
 // Conversions loyer
@@ -47,7 +48,10 @@ export const PI2_PAR_PERSONNE: Record<string, [number, number]> = {
 
 const arrondir50 = (n: number) => Math.round(n / 50) * 50;
 
-export type Estimation = { min: number; max: number; personnes: number; ratio: [number, number]; type: string };
+export type Estimation = { min: number; max: number; personnes: number; ratio: [number, number]; type: string; hybride: boolean; actuel: number | null };
+
+/** Part des postes à prévoir selon la présence au bureau (postes partagés). */
+const FACTEUR_HYBRIDE: Record<string, number> = { '5': 1, '3_4': 0.85, '1_2': 0.65, variable: 0.8 };
 
 export function estimerSuperficie(r: Reponses): Estimation | null {
   const emp = Number(r['espace.employes']) || 0;
@@ -57,13 +61,16 @@ export function estimerSuperficie(r: Reponses): Estimation | null {
   const ts = types(r).filter((ty) => PI2_PAR_PERSONNE[ty]);
   const type = ts.length ? ts.reduce((a, b) => (PI2_PAR_PERSONNE[b][1] > PI2_PAR_PERSONNE[a][1] ? b : a)) : 'bureau';
   const ratio = PI2_PAR_PERSONNE[type];
-  return {
-    min: Math.max(300, arrondir50(personnes * ratio[0])),
-    max: Math.max(400, arrondir50(personnes * ratio[1])),
-    personnes,
-    ratio,
-    type,
-  };
+  const facteur = type === 'bureau' ? FACTEUR_HYBRIDE[String(r['espace.joursBureau'])] ?? 1 : 1;
+  const actuel = Number(r['actuel.superficie']) || null;
+  let min = Math.max(300, arrondir50(personnes * facteur * ratio[0]));
+  let max = Math.max(400, arrondir50(personnes * facteur * ratio[1]));
+  // On s'agrandit : jamais plus petit que le local actuel.
+  if (actuel && r['projet.raison'] === 'agrandissement' && min <= actuel) {
+    min = arrondir50(actuel * 1.1);
+    max = Math.max(max, arrondir50(actuel * 1.5));
+  }
+  return { min, max, personnes, ratio, type, hybride: facteur < 1, actuel };
 }
 
 // ---------------------------------------------------------------------------
@@ -186,4 +193,18 @@ export function progression(r: Reponses, ecranId: string): number {
   const vis = ecransVisibles(r);
   const i = vis.findIndex((e) => e.id === ecranId);
   return vis.length ? Math.max(0, i) / vis.length : 0;
+}
+
+// ---------------------------------------------------------------------------
+// Repère de marché sur le budget
+// ---------------------------------------------------------------------------
+export type PositionBudget = { fourchette: [number, number]; pi2: number; position: 'sous' | 'dans' | 'au_dessus' };
+
+/** Compare le budget ($/pi²/an tout compris) aux fourchettes indicatives des types choisis. */
+export function positionBudget(r: Reponses): PositionBudget | null {
+  const l = loyerComplet(r['budget.loyer'] as Loyer | undefined, r['espace.superficie'] as Superficie | undefined);
+  const f = fourchettePour(types(r));
+  if (!l?.pi2 || !f) return null;
+  const position = l.pi2 < f[0] * 0.9 ? 'sous' : l.pi2 > f[1] ? 'au_dessus' : 'dans';
+  return { fourchette: f, pi2: l.pi2, position };
 }

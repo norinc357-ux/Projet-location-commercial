@@ -25,6 +25,9 @@ const importance3: Option[] = [
 const dateInvalide = (iso: string) => Number.isNaN(new Date(iso + 'T12:00:00').getTime());
 const aujourdHui = () => new Date().toISOString().slice(0, 10);
 
+const raisonParmi = (...v: string[]) => (r: Reponses) => v.includes(String(r['projet.raison']));
+const pratiqueParmi = (...v: string[]) => (r: Reponses) => v.includes(String(r['clinique.pratique']));
+
 // ---------- écrans ----------
 export const ECRANS: Ecran[] = [
   // ===== Étape 1 – Vous =====
@@ -53,7 +56,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'vous-joindre',
     etape: 1,
-    titre: { fr: 'Comment vous joindre ?', en: 'How can we reach you?' },
+    titre: { fr: 'Comment vous joindre ?', en: 'How can we reach you?' },
     champs: [
       { id: 'contact.courriel', type: 'texte', format: 'courriel', libelle: { fr: 'Courriel', en: 'Email' }, autocomplete: 'email', requis: true },
       { id: 'contact.telephone', type: 'texte', format: 'telephone', libelle: { fr: 'Téléphone', en: 'Phone' }, autocomplete: 'tel', requis: true, placeholder: { fr: '514 555-0123', en: '514-555-0123' } },
@@ -130,7 +133,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'projet-type',
     etape: 2,
-    titre: { fr: 'Quel type de local cherchez-vous ?', en: 'What kind of space are you looking for?' },
+    titre: { fr: 'Quel type de local cherchez-vous ?', en: 'What kind of space are you looking for?' },
     champs: [
       {
         id: 'projet.types',
@@ -145,7 +148,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'projet-usage',
     etape: 2,
-    titre: { fr: 'Qu’allez-vous y faire, exactement ?', en: 'What exactly will you do there?' },
+    titre: { fr: 'Qu’allez-vous y faire, exactement ?', en: 'What exactly will you do there?' },
     intro: {
       fr: 'Deux ou trois phrases suffisent. Ça nous aide à vérifier le zonage dès le départ.',
       en: 'Two or three sentences are enough. It helps us check zoning from the start.',
@@ -169,7 +172,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'projet-raison',
     etape: 2,
-    titre: { fr: 'Qu’est-ce qui motive votre recherche ?', en: 'What’s behind your search?' },
+    titre: { fr: 'Qu’est-ce qui motive votre recherche ?', en: 'What’s behind your search?' },
     champs: [
       {
         id: 'projet.raison',
@@ -189,7 +192,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'projet-urgence',
     etape: 2,
-    titre: { fr: 'Quand voulez-vous emménager ?', en: 'When do you want to move in?' },
+    titre: { fr: 'Quand voulez-vous emménager ?', en: 'When do you want to move in?' },
     champs: [
       {
         id: 'projet.urgence',
@@ -207,18 +210,114 @@ export const ECRANS: Ecran[] = [
     ],
   },
 
+  {
+    id: 'projet-situation',
+    etape: 2,
+    visible: raisonParmi('demenagement', 'agrandissement', 'fin_bail'),
+    titre: { fr: 'Et votre local actuel ?', en: 'What about your current space?' },
+    intro: {
+      fr: 'Ça nous donne un point de comparaison : on vous montrera ce qui change, en pi² et en dollars.',
+      en: 'It gives us a baseline: we will show you what changes, in sq. ft. and in dollars.',
+    },
+    champs: [
+      { id: 'actuel.superficie', type: 'nombre', libelle: { fr: 'Superficie actuelle', en: 'Current size' }, unite: { fr: 'pi²', en: 'sq. ft.' }, min: 0, max: 1000000, demi: true, recap: { fr: 'Local actuel', en: 'Current space' } },
+      { id: 'actuel.loyer', type: 'nombre', libelle: { fr: 'Loyer actuel, tout compris', en: 'Current rent, all-in' }, unite: { fr: '$ / mois', en: '$ / month' }, min: 0, max: 10000000, demi: true },
+      {
+        id: 'actuel.finBail',
+        type: 'date',
+        demi: true,
+        visible: raisonParmi('fin_bail', 'demenagement'),
+        libelle: { fr: 'Fin de votre bail actuel', en: 'Current lease end date' },
+        aide: { fr: 'Vérifiez aussi le délai d’avis prévu à votre bail (souvent 6 mois).', en: 'Also check the notice period in your lease (often 6 months).' },
+      },
+      {
+        id: 'actuel.problemes',
+        type: 'tuiles',
+        multiple: true,
+        compact: true,
+        libelle: { fr: 'Qu’est-ce qui ne fonctionne plus ?', en: 'What no longer works?' },
+        options: [
+          { valeur: 'trop_petit', libelle: { fr: 'Trop petit', en: 'Too small' } },
+          { valeur: 'trop_grand', libelle: { fr: 'Trop grand', en: 'Too big' } },
+          { valeur: 'trop_cher', libelle: { fr: 'Trop cher', en: 'Too expensive' } },
+          { valeur: 'mal_situe', libelle: { fr: 'Mal situé', en: 'Wrong location' } },
+          { valeur: 'etat', libelle: { fr: 'En mauvais état', en: 'In poor condition' } },
+          { valeur: 'image', libelle: { fr: 'Ne reflète plus notre image', en: 'No longer fits our image' } },
+          { valeur: 'proprietaire', libelle: { fr: 'Relation avec le propriétaire', en: 'Relationship with the landlord' } },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'projet-decision',
+    etape: 2,
+    titre: { fr: 'Comment se prendra la décision ?', en: 'How will the decision be made?' },
+    intro: {
+      fr: 'On adapte notre façon de travailler : un seul interlocuteur ou une équipe à convaincre, ça change tout.',
+      en: 'We adapt how we work: one decision-maker or a team to convince makes all the difference.',
+    },
+    champs: [
+      {
+        id: 'projet.decideur',
+        type: 'tuiles',
+        compact: true,
+        libelle: { fr: 'Qui prendra la décision finale ?', en: 'Who will make the final decision?' },
+        requis: true,
+        options: [
+          { valeur: 'seul', libelle: { fr: 'Moi seul', en: 'Me alone' } },
+          { valeur: 'associes', libelle: { fr: 'Moi et mes associés', en: 'Me and my partners' } },
+          { valeur: 'direction', libelle: { fr: 'La direction ou un conseil', en: 'Management or a board' } },
+        ],
+        recap: { fr: 'Décision', en: 'Decision' },
+      },
+      {
+        id: 'projet.financement',
+        type: 'tuiles',
+        compact: true,
+        visible: (r) => r['entreprise.statut'] === 'demarrage' || ['ouverture', 'succursale'].includes(String(r['projet.raison'])),
+        libelle: { fr: 'Le financement du projet est-il en place ?', en: 'Is the project financing in place?' },
+        aide: { fr: 'Les propriétaires le demandent souvent avant d’accepter une offre.', en: 'Landlords often ask before accepting an offer.' },
+        requis: true,
+        options: [
+          { valeur: 'en_place', libelle: { fr: 'Oui, c’est confirmé', en: 'Yes, it’s confirmed' } },
+          { valeur: 'en_cours', libelle: { fr: 'C’est en cours', en: 'In progress' } },
+          { valeur: 'pas_encore', libelle: { fr: 'Pas encore', en: 'Not yet' } },
+        ],
+        recap: { fr: 'Financement', en: 'Financing' },
+      },
+      {
+        id: 'projet.visites',
+        type: 'tuiles',
+        compact: true,
+        libelle: { fr: 'Avez-vous déjà visité des locaux ?', en: 'Have you already visited spaces?' },
+        options: [
+          { valeur: 'non', libelle: { fr: 'Pas encore', en: 'Not yet' } },
+          { valeur: 'quelques', libelle: { fr: 'Quelques-uns', en: 'A few' } },
+          { valeur: 'beaucoup', libelle: { fr: 'Beaucoup, sans succès', en: 'Many, without success' } },
+        ],
+      },
+      {
+        id: 'projet.autreCourtier',
+        type: 'tuiles',
+        compact: true,
+        libelle: { fr: 'Avez-vous signé une entente avec un autre courtier ?', en: 'Have you signed an agreement with another broker?' },
+        options: ouiNon(),
+      },
+    ],
+  },
+
   // ===== Étape 3 – Emplacement =====
   {
     id: 'emplacement-secteurs',
     etape: 3,
-    titre: { fr: 'Dans quels secteurs ?', en: 'Which areas?' },
+    titre: { fr: 'Dans quels secteurs ?', en: 'Which areas?' },
     intro: { fr: 'Choisissez autant de secteurs que vous voulez.', en: 'Pick as many areas as you like.' },
     champs: [{ id: 'emplacement.secteurs', type: 'secteurs', requis: true, recap: { fr: 'Secteurs', en: 'Areas' } }],
   },
   {
     id: 'emplacement-carte',
     etape: 3,
-    titre: { fr: 'Des repères à proximité ?', en: 'Any landmarks to be close to?' },
+    titre: { fr: 'Des repères à proximité ?', en: 'Any landmarks to be close to?' },
     intro: {
       fr: 'Facultatif. Votre domicile, vos clients ou vos fournisseurs : on calculera les temps de trajet pour chaque local.',
       en: 'Optional. Your home, clients or suppliers: we will work out travel times for each space.',
@@ -231,7 +330,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'emplacement-importance',
     etape: 3,
-    titre: { fr: 'Qu’est-ce qui compte autour du local ?', en: 'What matters around the space?' },
+    titre: { fr: 'Qu’est-ce qui compte autour du local ?', en: 'What matters around the space?' },
     intro: { fr: 'De 1 (pas important) à 5 (essentiel).', en: 'From 1 (not important) to 5 (essential).' },
     champs: [
       {
@@ -255,16 +354,31 @@ export const ECRANS: Ecran[] = [
   {
     id: 'espace-employes',
     etape: 4,
-    titre: { fr: 'Combien de personnes y travailleront ?', en: 'How many people will work there?' },
+    titre: { fr: 'Combien de personnes y travailleront ?', en: 'How many people will work there?' },
     champs: [
       { id: 'espace.employes', type: 'nombre', libelle: { fr: 'Aujourd’hui', en: 'Today' }, min: 0, max: 5000, requis: true, demi: true, unite: { fr: 'pers.', en: 'people' } },
       { id: 'espace.employes3ans', type: 'nombre', libelle: { fr: 'Dans 3 ans', en: 'In 3 years' }, min: 0, max: 5000, demi: true, unite: { fr: 'pers.', en: 'people' }, aide: { fr: 'Une estimation suffit.', en: 'A rough guess is fine.' } },
+      {
+        id: 'espace.joursBureau',
+        type: 'tuiles',
+        compact: true,
+        visible: aType('bureau'),
+        libelle: { fr: 'Combien de jours par semaine l’équipe est-elle au bureau ?', en: 'How many days a week is the team in the office?' },
+        aide: { fr: 'En mode hybride, on peut partager des postes et réduire la superficie.', en: 'With hybrid work, desks can be shared and the space reduced.' },
+        requis: true,
+        options: [
+          { valeur: '5', libelle: { fr: '5 jours', en: '5 days' } },
+          { valeur: '3_4', libelle: { fr: '3 ou 4 jours', en: '3 or 4 days' } },
+          { valeur: '1_2', libelle: { fr: '1 ou 2 jours', en: '1 or 2 days' } },
+          { valeur: 'variable', libelle: { fr: 'Ça varie', en: 'It varies' } },
+        ],
+      },
     ],
   },
   {
     id: 'espace-superficie',
     etape: 4,
-    titre: { fr: 'Quelle superficie ?', en: 'How much space?' },
+    titre: { fr: 'Quelle superficie ?', en: 'How much space?' },
     champs: [{ id: 'espace.superficie', type: 'superficie', lexique: 'pi2', requis: true, recap: { fr: 'Superficie', en: 'Size' } }],
   },
   {
@@ -277,7 +391,7 @@ export const ECRANS: Ecran[] = [
         type: 'tuiles',
         compact: true,
         technique: true,
-        libelle: { fr: 'Le rez-de-chaussée est-il obligatoire ?', en: 'Must it be on the ground floor?' },
+        libelle: { fr: 'Le rez-de-chaussée est-il obligatoire ?', en: 'Must it be on the ground floor?' },
         requis: true,
         options: [
           { valeur: 'rdc_obligatoire', libelle: { fr: 'Oui, obligatoire', en: 'Yes, required' } },
@@ -303,17 +417,31 @@ export const ECRANS: Ecran[] = [
     visible: aType('restaurant'),
     titre: { fr: 'Pour votre restaurant ou café', en: 'For your restaurant or café' },
     champs: [
-      { id: 'restaurant.hotte', type: 'tuiles', compact: true, technique: true, lexique: 'hotte', libelle: { fr: 'Avez-vous besoin d’une hotte avec extraction ?', en: 'Do you need a hood with exhaust?' }, requis: true, options: ouiNon({ fr: 'Oui (friture, grill)', en: 'Yes (frying, grill)' }, { fr: 'Non', en: 'No' }) },
-      { id: 'restaurant.gaz', type: 'tuiles', compact: true, technique: true, libelle: { fr: 'Une entrée de gaz ?', en: 'A gas line?' }, requis: true, options: ouiNon() },
+      {
+        id: 'restaurant.concept',
+        type: 'tuiles',
+        compact: true,
+        libelle: { fr: 'Votre concept', en: 'Your concept' },
+        requis: true,
+        options: [
+          { valeur: 'cafe', libelle: { fr: 'Café ou boulangerie', en: 'Café or bakery' } },
+          { valeur: 'comptoir', libelle: { fr: 'Comptoir et livraison', en: 'Counter and delivery' } },
+          { valeur: 'service_complet', libelle: { fr: 'Restaurant avec service', en: 'Full-service restaurant' } },
+          { valeur: 'bar', libelle: { fr: 'Bar ou brasserie', en: 'Bar or brewpub' } },
+          { valeur: 'production', libelle: { fr: 'Cuisine de production, traiteur', en: 'Production kitchen, catering' } },
+        ],
+      },
+      { id: 'restaurant.hotte', type: 'tuiles', compact: true, technique: true, lexique: 'hotte', libelle: { fr: 'Avez-vous besoin d’une hotte avec extraction ?', en: 'Do you need a hood with exhaust?' }, requis: true, options: ouiNon({ fr: 'Oui (friture, grill)', en: 'Yes (frying, grill)' }, { fr: 'Non', en: 'No' }) },
+      { id: 'restaurant.gaz', type: 'tuiles', compact: true, technique: true, libelle: { fr: 'Une entrée de gaz ?', en: 'A gas line?' }, requis: true, options: ouiNon() },
       { id: 'restaurant.places', type: 'nombre', technique: true, libelle: { fr: 'Nombre de places assises', en: 'Number of seats' }, min: 0, max: 1000, unite: { fr: 'places', en: 'seats' }, requis: true },
-      { id: 'restaurant.terrasse', type: 'tuiles', compact: true, libelle: { fr: 'Une terrasse ?', en: 'A patio?' }, requis: true, options: importance3 },
-      { id: 'restaurant.alcool', type: 'tuiles', compact: true, technique: true, lexique: 'permisAlcool', libelle: { fr: 'Prévoyez-vous un permis d’alcool ?', en: 'Do you plan to get a liquor licence?' }, requis: true, options: ouiNon() },
+      { id: 'restaurant.terrasse', type: 'tuiles', compact: true, libelle: { fr: 'Une terrasse ?', en: 'A patio?' }, requis: true, options: importance3 },
+      { id: 'restaurant.alcool', type: 'tuiles', compact: true, technique: true, lexique: 'permisAlcool', libelle: { fr: 'Prévoyez-vous un permis d’alcool ?', en: 'Do you plan to get a liquor licence?' }, requis: true, options: ouiNon() },
       {
         id: 'restaurant.equipe',
         type: 'tuiles',
         compact: true,
         technique: true,
-        libelle: { fr: 'Ancien restaurant ou local vide ?', en: 'Former restaurant or empty space?' },
+        libelle: { fr: 'Ancien restaurant ou local vide ?', en: 'Former restaurant or empty space?' },
         requis: true,
         options: [
           { valeur: 'equipe', libelle: { fr: 'Ancien restaurant (équipements en place)', en: 'Former restaurant (equipment in place)' } },
@@ -329,15 +457,44 @@ export const ECRANS: Ecran[] = [
     visible: aType('commerce'),
     titre: { fr: 'Pour votre commerce', en: 'For your store' },
     champs: [
+      {
+        id: 'commerce.categorie',
+        type: 'tuiles',
+        compact: true,
+        libelle: { fr: 'Que vendez-vous ?', en: 'What do you sell?' },
+        requis: true,
+        options: [
+          { valeur: 'mode', libelle: { fr: 'Mode et accessoires', en: 'Fashion and accessories' } },
+          { valeur: 'alimentation', libelle: { fr: 'Alimentation, épicerie fine', en: 'Food, specialty grocery' } },
+          { valeur: 'beaute', libelle: { fr: 'Beauté et bien-être', en: 'Beauty and wellness' } },
+          { valeur: 'maison', libelle: { fr: 'Maison et décoration', en: 'Home and decor' } },
+          { valeur: 'services', libelle: { fr: 'Services (salon, réparation…)', en: 'Services (salon, repair…)' } },
+          { valeur: 'autre', libelle: { fr: 'Autre', en: 'Other' } },
+        ],
+      },
+      {
+        id: 'commerce.emplacement',
+        type: 'tuiles',
+        compact: true,
+        technique: true,
+        libelle: { fr: 'Sur rue ou en centre commercial ?', en: 'Street front or shopping centre?' },
+        requis: true,
+        options: [
+          { valeur: 'rue', libelle: { fr: 'Sur rue', en: 'Street front' } },
+          { valeur: 'centre', libelle: { fr: 'Centre commercial', en: 'Shopping centre' } },
+          { valeur: 'mail', libelle: { fr: 'Mail extérieur (stationnement devant)', en: 'Strip mall (parking in front)' } },
+          { valeur: 'peu_importe', libelle: { fr: 'Peu importe', en: 'Either' } },
+        ],
+      },
       { id: 'commerce.vitrine', type: 'nombre', technique: true, libelle: { fr: 'Largeur de vitrine souhaitée', en: 'Desired storefront width' }, unite: { fr: 'pieds', en: 'feet' }, min: 0, max: 500, requis: true },
-      { id: 'commerce.enseigne', type: 'tuiles', compact: true, libelle: { fr: 'Une enseigne sur la façade ?', en: 'A sign on the façade?' }, requis: true, options: importance3 },
+      { id: 'commerce.enseigne', type: 'tuiles', compact: true, libelle: { fr: 'Une enseigne sur la façade ?', en: 'A sign on the façade?' }, requis: true, options: importance3 },
       {
         id: 'commerce.achalandage',
         type: 'tuiles',
         compact: true,
         technique: true,
         lexique: 'achalandage',
-        libelle: { fr: 'Quel achalandage vous faut-il ?', en: 'How much foot traffic do you need?' },
+        libelle: { fr: 'Quel achalandage vous faut-il ?', en: 'How much foot traffic do you need?' },
         requis: true,
         options: [
           { valeur: 'eleve', libelle: { fr: 'Élevé (artère commerciale)', en: 'High (main shopping street)' } },
@@ -345,7 +502,7 @@ export const ECRANS: Ecran[] = [
           { valeur: 'destination', libelle: { fr: 'Faible : les clients viennent exprès', en: 'Low: customers come on purpose' } },
         ],
       },
-      { id: 'commerce.entrepot', type: 'tuiles', compact: true, libelle: { fr: 'Un entrepôt à l’arrière ?', en: 'A back storage room?' }, requis: true, options: importance3 },
+      { id: 'commerce.entrepot', type: 'tuiles', compact: true, libelle: { fr: 'Un entrepôt à l’arrière ?', en: 'A back storage room?' }, requis: true, options: importance3 },
       {
         id: 'commerce.heures',
         type: 'tuiles',
@@ -368,6 +525,20 @@ export const ECRANS: Ecran[] = [
     titre: { fr: 'Pour vos bureaux', en: 'For your office' },
     champs: [
       {
+        id: 'bureau.classe',
+        type: 'tuiles',
+        compact: true,
+        technique: true,
+        lexique: 'classeImmeuble',
+        libelle: { fr: 'Quel standing d’immeuble ?', en: 'What building class?' },
+        requis: true,
+        options: [
+          { valeur: 'A', libelle: { fr: 'Classe A : prestige', en: 'Class A: prestige' } },
+          { valeur: 'B', libelle: { fr: 'Classe B : bon rapport qualité-prix', en: 'Class B: good value' } },
+          { valeur: 'C', libelle: { fr: 'Classe C : le plus économique', en: 'Class C: most affordable' } },
+        ],
+      },
+      {
         id: 'bureau.amenagement',
         type: 'tuiles',
         compact: true,
@@ -381,13 +552,13 @@ export const ECRANS: Ecran[] = [
         ],
       },
       { id: 'bureau.salles', type: 'nombre', technique: true, libelle: { fr: 'Salles de réunion', en: 'Meeting rooms' }, min: 0, max: 50, unite: { fr: 'salles', en: 'rooms' }, requis: true, demi: true },
-      { id: 'bureau.reception', type: 'tuiles', compact: true, libelle: { fr: 'Une réception ?', en: 'A reception area?' }, requis: true, options: ouiNon() },
-      { id: 'bureau.acces247', type: 'tuiles', compact: true, libelle: { fr: 'Accès 24 h sur 24, 7 jours sur 7 ?', en: '24/7 access?' }, requis: true, options: ouiNon() },
+      { id: 'bureau.reception', type: 'tuiles', compact: true, libelle: { fr: 'Une réception ?', en: 'A reception area?' }, requis: true, options: ouiNon() },
+      { id: 'bureau.acces247', type: 'tuiles', compact: true, libelle: { fr: 'Accès 24 h sur 24, 7 jours sur 7 ?', en: '24/7 access?' }, requis: true, options: ouiNon() },
       {
         id: 'bureau.meuble',
         type: 'tuiles',
         compact: true,
-        libelle: { fr: 'Meublé ?', en: 'Furnished?' },
+        libelle: { fr: 'Meublé ?', en: 'Furnished?' },
         requis: true,
         options: [
           { valeur: 'oui', libelle: { fr: 'Oui', en: 'Yes' } },
@@ -450,6 +621,40 @@ export const ECRANS: Ecran[] = [
         ],
       },
       { id: 'industriel.bureaux', type: 'nombre', libelle: { fr: 'Espace bureau intégré', en: 'Built-in office space' }, unite: { fr: 'pi²', en: 'sq. ft.' }, min: 0, max: 100000, aide: { fr: 'Inscrivez 0 si vous n’en avez pas besoin.', en: 'Enter 0 if you don’t need any.' } },
+      {
+        id: 'industriel.cour',
+        type: 'tuiles',
+        multiple: true,
+        compact: true,
+        libelle: { fr: 'Besoins à l’extérieur', en: 'Outdoor needs' },
+        options: [
+          { valeur: 'remorques', libelle: { fr: 'Stationnement de remorques', en: 'Trailer parking' } },
+          { valeur: 'entreposage', libelle: { fr: 'Entreposage extérieur', en: 'Outdoor storage' } },
+          { valeur: 'flotte', libelle: { fr: 'Flotte de véhicules', en: 'Vehicle fleet' } },
+        ],
+      },
+      {
+        id: 'industriel.temperature',
+        type: 'tuiles',
+        compact: true,
+        libelle: { fr: 'Température', en: 'Temperature' },
+        requis: true,
+        options: [
+          { valeur: 'ambiante', libelle: { fr: 'Ambiante', en: 'Ambient' } },
+          { valeur: 'controlee', libelle: { fr: 'Contrôlée', en: 'Controlled' } },
+          { valeur: 'froid', libelle: { fr: 'Réfrigérée ou congelée', en: 'Refrigerated or frozen' } },
+        ],
+      },
+      {
+        id: 'industriel.matieres',
+        type: 'tuiles',
+        compact: true,
+        technique: true,
+        libelle: { fr: 'Matières dangereuses ou inflammables ?', en: 'Hazardous or flammable materials?' },
+        aide: { fr: 'Ça change le zonage, les gicleurs et l’assurance : mieux vaut le savoir tôt.', en: 'It affects zoning, sprinklers and insurance: better to know early.' },
+        requis: true,
+        options: ouiNon(),
+      },
     ],
   },
   {
@@ -458,6 +663,34 @@ export const ECRANS: Ecran[] = [
     visible: aType('clinique'),
     titre: { fr: 'Pour votre clinique', en: 'For your clinic' },
     champs: [
+      {
+        id: 'clinique.pratique',
+        type: 'tuiles',
+        compact: true,
+        libelle: { fr: 'Votre pratique', en: 'Your practice' },
+        requis: true,
+        options: [
+          { valeur: 'medecine', libelle: { fr: 'Médecine', en: 'Medicine' } },
+          { valeur: 'dentaire', libelle: { fr: 'Dentaire', en: 'Dental' } },
+          { valeur: 'physio', libelle: { fr: 'Physio, ostéo, chiro', en: 'Physio, osteo, chiro' } },
+          { valeur: 'psycho', libelle: { fr: 'Psychologie, thérapie', en: 'Psychology, therapy' } },
+          { valeur: 'esthetique', libelle: { fr: 'Médecine esthétique', en: 'Aesthetic medicine' } },
+          { valeur: 'veterinaire', libelle: { fr: 'Vétérinaire', en: 'Veterinary' } },
+          { valeur: 'autre', libelle: { fr: 'Autre', en: 'Other' } },
+        ],
+      },
+      { id: 'clinique.salles', type: 'nombre', libelle: { fr: 'Salles de consultation ou de traitement', en: 'Consultation or treatment rooms' }, min: 1, max: 200, unite: { fr: 'salles', en: 'rooms' }, requis: true },
+      {
+        id: 'clinique.imagerie',
+        type: 'tuiles',
+        compact: true,
+        technique: true,
+        visible: pratiqueParmi('dentaire', 'medecine', 'veterinaire'),
+        libelle: { fr: 'Appareils de radiographie ?', en: 'X-ray equipment?' },
+        aide: { fr: 'Les salles de radiographie demandent un blindage et parfois une dalle renforcée.', en: 'X-ray rooms need shielding and sometimes a reinforced floor.' },
+        requis: true,
+        options: ouiNon(),
+      },
       { id: 'clinique.sallesPlomberie', type: 'nombre', technique: true, libelle: { fr: 'Salles avec lavabo ou plomberie', en: 'Rooms with a sink or plumbing' }, min: 0, max: 100, unite: { fr: 'salles', en: 'rooms' }, requis: true },
       { id: 'clinique.insonorisation', type: 'tuiles', compact: true, technique: true, lexique: 'insonorisation', libelle: { fr: 'Insonorisation entre les salles', en: 'Soundproofing between rooms' }, requis: true, options: importance3 },
       { id: 'clinique.accessibilite', type: 'tuiles', compact: true, technique: true, lexique: 'accessibiliteUniverselle', libelle: { fr: 'Accessibilité universelle', en: 'Universal accessibility' }, requis: true, options: importance3 },
@@ -470,6 +703,22 @@ export const ECRANS: Ecran[] = [
     visible: aType('atelier'),
     titre: { fr: 'Pour votre atelier', en: 'For your workshop' },
     champs: [
+      {
+        id: 'atelier.activite',
+        type: 'tuiles',
+        compact: true,
+        libelle: { fr: 'Votre activité', en: 'Your activity' },
+        requis: true,
+        options: [
+          { valeur: 'bois', libelle: { fr: 'Ébénisterie, bois', en: 'Woodworking' } },
+          { valeur: 'metal', libelle: { fr: 'Métal, soudure', en: 'Metal, welding' } },
+          { valeur: 'impression', libelle: { fr: 'Impression, enseignes', en: 'Printing, signs' } },
+          { valeur: 'creation', libelle: { fr: 'Studio de création, artisanat', en: 'Creative studio, crafts' } },
+          { valeur: 'mecanique', libelle: { fr: 'Mécanique automobile', en: 'Auto repair' } },
+          { valeur: 'alimentaire', libelle: { fr: 'Transformation alimentaire', en: 'Food processing' } },
+          { valeur: 'autre', libelle: { fr: 'Autre', en: 'Other' } },
+        ],
+      },
       {
         id: 'atelier.ventilation',
         type: 'tuiles',
@@ -524,11 +773,29 @@ export const ECRANS: Ecran[] = [
     ],
   },
 
+  {
+    id: 'technique-mixte',
+    etape: 5,
+    visible: aType('mixte'),
+    titre: { fr: 'Pour votre local mixte', en: 'For your mixed-use space' },
+    champs: [
+      {
+        id: 'mixte.usages',
+        type: 'zone_texte',
+        lignes: 3,
+        max: 400,
+        requis: true,
+        libelle: { fr: 'Quels usages combinez-vous, et dans quelle proportion ?', en: 'Which uses are you combining, and in what proportion?' },
+        placeholder: { fr: 'Ex. : boutique à l’avant (60 %), atelier de couture à l’arrière (40 %).', en: 'E.g.: shop at the front (60%), sewing workshop at the back (40%).' },
+      },
+    ],
+  },
+
   // ===== Étape 6 – Budget et bail =====
   {
     id: 'budget-loyer',
     etape: 6,
-    titre: { fr: 'Quel est votre budget de loyer ?', en: 'What is your rent budget?' },
+    titre: { fr: 'Quel est votre budget de loyer ?', en: 'What is your rent budget?' },
     intro: {
       fr: 'Indiquez-le comme c’est le plus simple pour vous : on fait la conversion.',
       en: 'Enter it whichever way is easiest for you: we do the conversion.',
@@ -624,7 +891,7 @@ export const ECRANS: Ecran[] = [
         type: 'tuiles',
         compact: true,
         lexique: 'garantiePersonnelle',
-        libelle: { fr: 'Ouvert à une garantie personnelle ?', en: 'Open to a personal guarantee?' },
+        libelle: { fr: 'Ouvert à une garantie personnelle ?', en: 'Open to a personal guarantee?' },
         requis: true,
         options: [
           { valeur: 'oui', libelle: { fr: 'Oui', en: 'Yes' } },
@@ -637,7 +904,7 @@ export const ECRANS: Ecran[] = [
         type: 'tuiles',
         compact: true,
         lexique: 'depot',
-        libelle: { fr: 'Ouvert à verser un dépôt ?', en: 'Open to paying a deposit?' },
+        libelle: { fr: 'Ouvert à verser un dépôt ?', en: 'Open to paying a deposit?' },
         requis: true,
         options: [
           { valeur: 'oui', libelle: { fr: 'Oui', en: 'Yes' } },
@@ -652,7 +919,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'priorites-criteres',
     etape: 7,
-    titre: { fr: 'Qu’est-ce qui est obligatoire pour vous ?', en: 'What is a must-have for you?' },
+    titre: { fr: 'Qu’est-ce qui est obligatoire pour vous ?', en: 'What is a must-have for you?' },
     intro: {
       fr: 'Pour chaque élément : obligatoire, souhaitable ou pas important. Les éléments obligatoires écartent les locaux qui ne les ont pas.',
       en: 'For each item: must-have, nice to have or not important. Must-haves rule out spaces that lack them.',
@@ -662,7 +929,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'priorites-eliminatoires',
     etape: 7,
-    titre: { fr: 'Qu’est-ce qui serait un non catégorique ?', en: 'What would be an absolute no?' },
+    titre: { fr: 'Qu’est-ce qui serait un non catégorique ?', en: 'What would be an absolute no?' },
     intro: { fr: 'Facultatif. On ne vous proposera jamais un local qui en contient un.', en: 'Optional. We will never propose a space that has one.' },
     champs: [
       { id: 'priorites.eliminatoires', type: 'tuiles', multiple: true, compact: true, lexique: 'dealBreaker', options: DEAL_BREAKERS, recap: { fr: 'Éliminatoires', en: 'Deal-breakers' } },
@@ -684,7 +951,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'mots-fichiers',
     etape: 8,
-    titre: { fr: 'Des images ou des liens à partager ?', en: 'Any images or links to share?' },
+    titre: { fr: 'Des images ou des liens à partager ?', en: 'Any images or links to share?' },
     intro: { fr: 'Facultatif. Photos d’inspiration, plan, annonces de locaux qui vous plaisent déjà.', en: 'Optional. Inspiration photos, a floor plan, listings you already like.' },
     champs: [
       { id: 'mots.fichiers', type: 'fichiers', recap: { fr: 'Fichiers', en: 'Files' } },
@@ -696,7 +963,7 @@ export const ECRANS: Ecran[] = [
   {
     id: 'recap',
     etape: 9,
-    titre: { fr: 'Tout est-il exact ?', en: 'Is everything correct?' },
+    titre: { fr: 'Tout est-il exact ?', en: 'Is everything correct?' },
     intro: { fr: 'Touchez « Modifier » pour corriger une section. Vous reviendrez ici ensuite.', en: 'Tap “Edit” to fix a section. You will come back here afterwards.' },
     champs: [{ id: 'recap', type: 'recap' }],
   },

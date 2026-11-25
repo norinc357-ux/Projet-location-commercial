@@ -105,6 +105,23 @@ export function versCriteres(r: Reponses): ResultatCriteres {
   if (camion && camion !== 'non') out.push(c('acces_camion', 'min', camion, 'obligatoire', 4));
   if (val('atelier.bruit') === 'eleve') out.push(c('usage_bruyant_permis', 'egal', true, 'obligatoire', 4));
 
+  // Précisions par profil (ajoutées pour mieux cibler la recherche)
+  if (val('restaurant.concept') === 'bar') out.push(c('zonage_bar', 'egal', true, 'obligatoire', 5));
+  if (val('restaurant.concept') === 'production') out.push(c('zonage_production_alimentaire', 'egal', true, 'obligatoire', 5));
+  const empl = val('commerce.emplacement');
+  if (empl && empl !== 'peu_importe') out.push(c('type_emplacement', 'egal', empl, 'obligatoire', 4));
+  const classe = val('bureau.classe');
+  if (classe) out.push(c('classe_immeuble', 'egal', classe, 'souhaitable', 3));
+  for (const cour of (val('industriel.cour') as string[] | undefined) ?? []) out.push(c(`cour_${cour}`, 'egal', true, 'obligatoire', 4));
+  const temp = val('industriel.temperature');
+  if (temp === 'controlee' || temp === 'froid') out.push(c(`temperature_${temp}`, 'egal', true, 'obligatoire', 5));
+  if (val('industriel.matieres') === 'oui') out.push(c('zonage_matieres_dangereuses', 'egal', true, 'obligatoire', 5));
+  const salles = val('clinique.salles');
+  if (typeof salles === 'number' && salles > 0) out.push(c('salles_fermees', 'min', salles, 'obligatoire', 5));
+  if (val('clinique.imagerie') === 'oui') out.push(c('blindage_radiologie', 'egal', true, 'souhaitable', 4));
+  if (val('atelier.activite') === 'mecanique') out.push(c('zonage_garage', 'egal', true, 'obligatoire', 5));
+  if (val('atelier.activite') === 'alimentaire') out.push(c('zonage_production_alimentaire', 'egal', true, 'obligatoire', 5));
+
   // Budget et bail
   const loyer = loyerComplet(r['budget.loyer'] as Loyer | undefined, sup);
   if (loyer?.mensuel) out.push(c('cout_total_mensuel', 'max', loyer.mensuel, 'obligatoire', 5));

@@ -294,6 +294,9 @@ button { font: inherit; color: inherit; }
 .lien-bouton:disabled { opacity: 0.45; cursor: default; }
 .encadre { background: var(--or-teinte); border-left: 4px solid var(--or); border-radius: 8px; padding: 12px 14px; margin-top: 10px; }
 .encadre p { margin: 0 0 10px; }
+.encadre p:last-child { margin-bottom: 0; }
+.repere { margin-top: 16px; }
+.repere-dans, .repere-au_dessus { border-left-color: var(--sauge); }
 
 /* Pied : collant en bas de l'écran sur cellulaire */
 .pied { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 12px; }

@@ -114,3 +114,27 @@ export const ETAPES: { numero: number; titre: T }[] = [
   { numero: 8, titre: { fr: 'Dans vos mots', en: 'In your own words' } },
   { numero: 9, titre: { fr: 'Récapitulatif', en: 'Summary' } },
 ];
+
+/**
+ * Fourchettes indicatives du coût total (loyer + frais d'exploitation), en $/pi²/an, région de Montréal.
+ * HYPOTHÈSE À VALIDER PAR L'AGENCE : à mettre à jour chaque trimestre dans Réglages (étape 5).
+ */
+export const FOURCHETTES_MARCHE: Record<string, [number, number]> = {
+  bureau: [22, 45],
+  commerce: [25, 65],
+  restaurant: [30, 65],
+  industriel: [14, 24],
+  clinique: [25, 45],
+  atelier: [14, 24],
+  mixte: [20, 40],
+};
+
+/** Fourchette pour les types choisis : la plus basse des bornes basses, la plus haute des bornes hautes. */
+export function fourchettePour(types: string[]): [number, number] | null {
+  const f = types.map((t) => FOURCHETTES_MARCHE[t]).filter(Boolean);
+  if (!f.length) return null;
+  return [Math.min(...f.map((x) => x[0])), Math.max(...f.map((x) => x[1]))];
+}
+
+/** Date d'emménagement suggérée à partir de l'échéance choisie à l'étape 2 (en mois). */
+export const MOIS_PAR_URGENCE: Record<string, number> = { moins_1_mois: 1, '1_3_mois': 2, '3_6_mois': 4, '6_12_mois': 9 };

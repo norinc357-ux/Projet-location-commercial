@@ -6,6 +6,7 @@ import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import type { Reponses } from '@/lib/formulaire/types';
 import type { Critere } from '@/lib/formulaire/criteres';
+import type { Qualification } from '@/lib/formulaire/qualification';
 
 export type DemandeStockee = {
   jeton: string;
@@ -15,7 +16,7 @@ export type DemandeStockee = {
   creeLe: string;
   misAJour: string;
   soumiseLe?: string;
-  dossier?: { numero: string; etape: 'DEMANDE_RECUE'; criteres: Critere[]; aValider: string[] };
+  dossier?: { numero: string; etape: 'DEMANDE_RECUE'; criteres: Critere[]; aValider: string[]; qualification: Qualification };
 };
 
 const FICHIER = path.join(process.cwd(), '.data', 'demandes.json');
@@ -50,7 +51,7 @@ export const depot = {
       await ecrire(tout);
       return tout[jeton];
     }),
-  soumettre: (jeton: string, reponses: Reponses, criteres: Critere[], aValider: string[]) =>
+  soumettre: (jeton: string, reponses: Reponses, criteres: Critere[], aValider: string[], qualification: Qualification) =>
     enSerie(async () => {
       const tout = await lire();
       const maintenant = new Date().toISOString();
@@ -66,7 +67,7 @@ export const depot = {
         creeLe: ex?.creeLe ?? maintenant,
         misAJour: maintenant,
         soumiseLe: maintenant,
-        dossier: { numero: `CEM-${annee}-${String(n).padStart(4, '0')}`, etape: 'DEMANDE_RECUE', criteres, aValider },
+        dossier: { numero: `CEM-${annee}-${String(n).padStart(4, '0')}`, etape: 'DEMANDE_RECUE', criteres, aValider, qualification },
       };
       await ecrire(tout);
       return tout[jeton];

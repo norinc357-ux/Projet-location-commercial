@@ -147,6 +147,13 @@ export const LEXIQUE = {
       en: 'Acoustic insulation between rooms, for confidential consultations or to avoid disturbing neighbours.',
     },
   },
+  classeImmeuble: {
+    terme: { fr: 'Classe d’immeuble (A, B, C)', en: 'Building class (A, B, C)' },
+    definition: {
+      fr: 'Classe A : immeuble récent ou rénové, hall soigné, services complets, loyer le plus élevé. Classe B : bien entretenu, plus simple. Classe C : plus ancien, le moins cher, parfois des travaux à prévoir.',
+      en: 'Class A: new or renovated building, polished lobby, full services, highest rent. Class B: well kept, simpler. Class C: older, cheapest, sometimes needs work.',
+    },
+  },
   dealBreaker: {
     terme: { fr: 'Élément éliminatoire', en: 'Deal-breaker' },
     definition: {

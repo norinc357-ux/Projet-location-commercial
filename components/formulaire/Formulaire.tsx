@@ -4,7 +4,7 @@ import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type For
 import { UI, t, tf, formatHeure, type Langue } from '@/lib/formulaire/i18n';
 import type { Champ, Reponses } from '@/lib/formulaire/types';
 import { ECRANS, champVisible, ecranParId, ecransVisibles } from '@/lib/formulaire/ecrans';
-import { ETAPES } from '@/lib/formulaire/referentiels';
+import { ETAPES, MOIS_PAR_URGENCE } from '@/lib/formulaire/referentiels';
 import { estVide, progression, tempsRestant, validerEcran, validerTout } from '@/lib/formulaire/calculs';
 import { afficherValeur, libelleRecap } from '@/lib/formulaire/affichage';
 import { PersistanceApi, PersistanceLocale, nouveauJeton, type Persistance } from '@/lib/formulaire/persistance';
@@ -130,6 +130,16 @@ export function Formulaire({ langue, mode, cheminAutreLangue, changerLangue }: P
   }, [ecranId, pret]);
 
   const changer = (id: string, v: unknown) => setReponses((r) => ({ ...r, [id]: v }));
+
+  // Jamais deux fois : la date idéale découle de l'échéance choisie à l'étape 2, ou de la fin du bail actuel (modifiable).
+  useEffect(() => {
+    if (ecranId !== 'budget-dates' || reponses['bail.dateIdeale']) return;
+    const mois = MOIS_PAR_URGENCE[String(reponses['projet.urgence'])];
+    const fin = reponses['actuel.finBail'] as string | undefined;
+    const aujourd = new Date().toISOString().slice(0, 10);
+    const suggestion = fin && fin > aujourd ? fin : mois ? new Date(Date.now() + mois * 30.4 * 864e5).toISOString().slice(0, 10) : null;
+    if (suggestion) setReponses((r) => ({ ...r, 'bail.dateIdeale': suggestion, ...(fin && fin > aujourd && !r['bail.dateLimite'] ? { 'bail.dateLimite': fin } : {}) }));
+  }, [ecranId]); // eslint-disable-line react-hooks/exhaustive-deps
   const quitter = (id: string) => setTouches((s) => (s.has(id) ? s : new Set(s).add(id)));
 
   const continuer = async (e?: FormEvent) => {

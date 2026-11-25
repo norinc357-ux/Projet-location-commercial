@@ -5,7 +5,7 @@ import { LEXIQUE, type CleLexique } from '@/lib/formulaire/lexique';
 import { UI, t, tf, formatArgent, formatNombre, formatDateLongue, formatHeure, type Langue, type T } from '@/lib/formulaire/i18n';
 import { AIDE, type Champ, type Loyer, type Niveau, type Option, type Reponses, type Superficie, type AdresseProche, type FichierJoint } from '@/lib/formulaire/types';
 import { SECTEURS, prioritesPour } from '@/lib/formulaire/referentiels';
-import { estimerSuperficie, mensuelVersPi2, pi2VersMensuel, superficieReference, chiffres } from '@/lib/formulaire/calculs';
+import { estimerSuperficie, mensuelVersPi2, pi2VersMensuel, positionBudget, superficieReference, chiffres } from '@/lib/formulaire/calculs';
 import { types as typesChoisis } from '@/lib/formulaire/ecrans';
 import { prochainsCreneaux, type Journee } from '@/lib/formulaire/creneaux';
 import { Check, CircleHelp, Icone } from './icones';
@@ -443,6 +443,8 @@ function ChampSuperficie({ valeur, changer, quitter, langue, reponses, idChamp }
                   ? `Pour ${formatNombre(est.personnes, langue)} personnes, on compte en général ${est.ratio[0]} à ${est.ratio[1]} pi² par personne pour ce type de local : `
                   : `For ${formatNombre(est.personnes, langue)} people, this type of space usually needs ${est.ratio[0]} to ${est.ratio[1]} sq. ft. per person: `}
                 <strong>{formatNombre(est.min, langue)} – {formatNombre(est.max, langue)} pi²</strong>.
+                {est.hybride && (langue === 'fr' ? ' On a tenu compte du travail hybride (postes partagés).' : ' We accounted for hybrid work (shared desks).')}
+                {est.actuel && (langue === 'fr' ? ` Votre local actuel : ${formatNombre(est.actuel, langue)} pi².` : ` Your current space: ${formatNombre(est.actuel, langue)} sq. ft.`)}
               </p>
               <button type="button" className="bouton bouton-secondaire" onClick={() => { changer({ min: est.min, max: est.max }); setMontrerEst(false); }}>
                 {langue === 'fr' ? 'Utiliser cette estimation' : 'Use this estimate'}
@@ -506,6 +508,33 @@ function ChampLoyer({ valeur, changer, quitter, langue, reponses, idChamp }: { v
         <span className="unite">{valeur.mode === 'mensuel' ? '$ / mois' : '$ / pi² / an'}</span>
       </span>
       <p className="conversion" aria-live="polite">{conversion ?? (ref ? '' : langue === 'fr' ? 'Astuce : indiquez une superficie à l’étape 4 pour voir la conversion.' : 'Tip: enter a size in step 4 to see the conversion.')}</p>
+      <RepereMarche reponses={reponses} langue={langue} />
+    </div>
+  );
+}
+
+/** Repère de marché : rassure si le budget est réaliste, prépare la discussion sinon. */
+function RepereMarche({ reponses, langue }: { reponses: Reponses; langue: Langue }) {
+  const pos = positionBudget(reponses);
+  if (!pos) return null;
+  const fr = langue === 'fr';
+  const [bas, haut] = pos.fourchette;
+  const fourchette = fr ? `${bas} à ${haut} $/pi²/an` : `$${bas} to $${haut}/sq. ft./yr`;
+  const texte = {
+    dans: fr
+      ? `Votre budget se situe dans la fourchette habituelle pour ce type de local à Montréal (${fourchette}, tout compris).`
+      : `Your budget is within the usual range for this type of space in Montréal (${fourchette}, all-in).`,
+    sous: fr
+      ? `Votre budget est un peu sous la fourchette habituelle (${fourchette}, tout compris). Pas de panique : on regardera des secteurs voisins, des locaux à rafraîchir ou une superficie ajustée, et on en parlera pendant l’appel.`
+      : `Your budget is a bit below the usual range (${fourchette}, all-in). Don’t worry: we will look at nearby areas, spaces needing a refresh or an adjusted size, and discuss it on the call.`,
+    au_dessus: fr
+      ? `Votre budget dépasse la fourchette habituelle (${fourchette}, tout compris) : vous aurez accès aux meilleurs emplacements.`
+      : `Your budget is above the usual range (${fourchette}, all-in): you will have access to the best locations.`,
+  }[pos.position];
+  return (
+    <div className={`encadre repere repere-${pos.position}`} role="status">
+      <p>{texte}</p>
+      <p className="indice">{fr ? 'Fourchette indicative, mise à jour par nos courtiers.' : 'Indicative range, updated by our brokers.'}</p>
     </div>
   );
 }
