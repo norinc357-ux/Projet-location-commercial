@@ -3,7 +3,7 @@
 Plateforme web d'une agence de location de locaux commerciaux à Montréal.
 Le nom de l'agence est **provisoire** : il se change à un seul endroit, `lib/config.ts`.
 
-## État : étape 2 sur 6 — formulaire intelligent « Décrire mon projet »
+## État : étape 3 sur 6 — pages publiques (étapes 1 et 2 validées)
 
 | Étape | Contenu | État |
 | --- | --- | --- |
@@ -18,7 +18,7 @@ Le nom de l'agence est **provisoire** : il se change à un seul endroit, `lib/co
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000/decrire-mon-projet  et  /en/describe-my-project
+npm run dev        # http://localhost:3000  (site FR) · /en (site EN) · /decrire-mon-projet
 npm test           # 30 tests (validation, conversions, logique conditionnelle, critères, qualification, fiche, créneaux)
 npm run typecheck
 npm run demo:build # démo autonome sans serveur : demo/dist/index.html
@@ -45,11 +45,30 @@ lib/exemples.ts                Demande d'EXEMPLE fictive (démo, tests)
 app/agence/fiches/             Vue agence : demandes triées par priorité + fiche de chaque demande
 middleware.ts                  Protège /agence par mot de passe (AGENCE_MOT_DE_PASSE)
 lib/serveur/                   Dépôt JSON de développement, courriels (console), limites d'envoi
+app/(fr)/  et  app/en/        Pages publiques, une racine par langue (attribut lang correct)
+components/site/               En-tête, pied de page, contenu des pages, formulaire de contact, styles du site
+lib/site/                      Adresses FR/EN, contenu des types de locaux, métadonnées SEO, validation du contact
+app/sitemap.ts, robots.ts      Plan du site bilingue (hreflang) et règles d'indexation
+app/api/contact/               Message du formulaire de contact (validation, anti-robots, limite d'envoi)
 app/api/demandes/[jeton]/      GET/PUT brouillon · POST reprise (lien par courriel) · POST soumettre
 components/formulaire/         Interface (tuiles, infobulles, curseur double, carte, rendez-vous, récapitulatif, merci)
 demo/                          Démo autonome (Vite, un seul fichier HTML)
 tests/                         Tests Vitest
 ```
+
+## Pages publiques (étape 3)
+
+Accueil, Comment ça marche, Types de locaux (une page par type), Guide du locataire (baux, frais, clauses, lexique), À propos, Contact, Espace client (accès), Politique de confidentialité. Tout existe en français et en anglais, avec le sélecteur FR/EN qui mène à la page équivalente.
+Le bouton « Décrire mon projet » reste visible : dans l'en-tête sur ordinateur, en bas de l'écran sur cellulaire.
+Vérifié : aucun défilement horizontal à 390 px, aucune erreur d'accessibilité automatique (axe, WCAG 2.1 AA) en mode clair et sombre.
+
+### Hypothèses de l'étape 3
+- Coordonnées, numéro de permis OACIQ, responsable de la vie privée, chiffres clés, témoignages et équipe : espaces réservés, clairement marqués.
+- Rémunération : « dans la plupart des locations commerciales, le propriétaire paie le courtier ». À confirmer par l'agence.
+- Secteurs desservis : île de Montréal, Laval, Longueuil et Rive-Sud, Rive-Nord.
+- Repères de loyer des pages de types : mêmes fourchettes que le formulaire (à confirmer).
+- Politique de confidentialité : version préliminaire, à faire valider par un juriste ; conservation de 24 mois pour une demande sans suite.
+- Le catalogue « Locaux disponibles » arrivera avec l'inventaire (étape 5) ; les pages par quartier attendent de vrais textes par secteur pour ne pas créer de pages vides aux yeux de Google.
 
 ## Fiche de recherche (vue agence)
 

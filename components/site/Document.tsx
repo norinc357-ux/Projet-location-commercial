@@ -1,15 +1,11 @@
-import type { Metadata, Viewport } from 'next';
+import type { Langue } from '@/lib/formulaire/i18n';
 import '@/components/formulaire/formulaire.css';
+import './site.css';
 
-export const metadata: Metadata = {
-  title: 'Clé en main Commercial (nom provisoire)',
-  description: 'Location de locaux commerciaux à Montréal, clé en main.',
-};
-export const viewport: Viewport = { width: 'device-width', initialScale: 1, themeColor: '#0e1e3a' };
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+/** Squelette HTML commun aux deux langues (chaque langue a sa propre racine pour un attribut lang correct). */
+export function Document({ langue, children }: { langue: Langue; children: React.ReactNode }) {
   return (
-    <html lang="fr-CA">
+    <html lang={langue === 'fr' ? 'fr-CA' : 'en-CA'}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

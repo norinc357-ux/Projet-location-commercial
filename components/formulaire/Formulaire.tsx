@@ -1,5 +1,6 @@
 'use client';
 
+import { Lien } from '@/components/site/Lien';
 import { forwardRef, useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { UI, t, tf, formatHeure, type Langue } from '@/lib/formulaire/i18n';
 import type { Champ, Reponses } from '@/lib/formulaire/types';
@@ -206,10 +207,10 @@ export function Formulaire({ langue, mode, cheminAutreLangue, changerLangue, voi
   return (
     <div className="formulaire">
       <header className="entete">
-        <a className="marque" href={langue === 'fr' ? '/' : '/en/'}>
+        <Lien className="marque" href={langue === 'fr' ? '/' : '/en'}>
           <span className="marque-nom">{AGENCE.nomCourt}</span>
           {AGENCE.provisoire && <span className="marque-provisoire">{langue === 'fr' ? 'nom provisoire' : 'placeholder name'}</span>}
-        </a>
+        </Lien>
         <div className="entete-actions">
           <button type="button" className="lien-bouton" onClick={() => dialogue.current?.showModal()}>{t(UI.finirPlusTard, langue)}</button>
           {changerLangue ? (

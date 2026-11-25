@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function Page() {
   return (
-    <div lang="en-CA">
+    <>
       <Formulaire langue="en" mode="api" cheminAutreLangue="/decrire-mon-projet" />
-    </div>
+    </>
   );
 }
