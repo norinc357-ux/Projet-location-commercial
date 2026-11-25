@@ -19,7 +19,7 @@ Le nom de l'agence est **provisoire** : il se change à un seul endroit, `lib/co
 ```bash
 npm install
 npm run dev        # http://localhost:3000/decrire-mon-projet  et  /en/describe-my-project
-npm test           # 17 tests (validation, conversions, logique conditionnelle, critères, créneaux)
+npm test           # 30 tests (validation, conversions, logique conditionnelle, critères, qualification, fiche, créneaux)
 npm run typecheck
 npm run demo:build # démo autonome sans serveur : demo/dist/index.html
 ```
@@ -39,12 +39,24 @@ lib/formulaire/
   creneaux.ts                  Créneaux de l'appel découverte (heure de Montréal, fériés du Québec)
   affichage.ts                 Mise en forme lisible (récapitulatif, futur PDF)
   persistance.ts               Sauvegarde : appareil (localStorage) + serveur (API)
+  qualification.ts             Score de priorité 0–100 et signaux (budget, urgence, financement…)
+  ficheRecherche.ts            Réponses → fiche de recherche de l'agent (obligatoire, souhaitable, filtres, questions)
+lib/exemples.ts                Demande d'EXEMPLE fictive (démo, tests)
+app/agence/fiches/             Vue agence : demandes triées par priorité + fiche de chaque demande
+middleware.ts                  Protège /agence par mot de passe (AGENCE_MOT_DE_PASSE)
 lib/serveur/                   Dépôt JSON de développement, courriels (console), limites d'envoi
 app/api/demandes/[jeton]/      GET/PUT brouillon · POST reprise (lien par courriel) · POST soumettre
 components/formulaire/         Interface (tuiles, infobulles, curseur double, carte, rendez-vous, récapitulatif, merci)
 demo/                          Démo autonome (Vite, un seul fichier HTML)
 tests/                         Tests Vitest
 ```
+
+## Fiche de recherche (vue agence)
+
+Chaque demande envoyée produit une fiche : `/agence/fiches` (liste triée par score) puis `/agence/fiches/CEM-AAAA-NNNN`.
+Elle contient les critères obligatoires, souhaitables et à écarter, le budget situé par rapport au marché, des filtres prêts à saisir dans Centris, LoopNet ou l'inventaire (avec bouton « Copier la fiche »), et les questions à poser pendant l'appel découverte.
+
+Accès : définir `AGENCE_MOT_DE_PASSE` (n'importe quel nom d'utilisateur). Sans cette variable, `/agence` est fermé. De vrais comptes agents arrivent à l'étape 5.
 
 ## Ce que fait le formulaire
 

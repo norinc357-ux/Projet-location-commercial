@@ -5,7 +5,7 @@ import type { Reponses } from '@/lib/formulaire/types';
 import { Check } from './icones';
 
 /** Écran de remerciement : prochaines étapes et délais, sans jargon. */
-export function Merci({ numero, reponses, langue, demo = false }: { numero: string; reponses: Reponses; langue: Langue; demo?: boolean }) {
+export function Merci({ numero, reponses, langue, demo = false, voirFiche }: { numero: string; reponses: Reponses; langue: Langue; demo?: boolean; voirFiche?: () => void }) {
   const fr = langue === 'fr';
   const rdv = reponses['rdv.creneau'] as { debut: string } | 'plus_tard' | undefined;
   const prenom = (reponses['contact.prenom'] as string) ?? '';
@@ -53,6 +53,13 @@ export function Merci({ numero, reponses, langue, demo = false }: { numero: stri
       </p>
       {demo ? (
         <p className="bandeau">{fr ? 'Démo : le courriel de confirmation et l’espace client arrivent aux étapes 4 et 6.' : 'Demo: the confirmation email and client portal arrive in steps 4 and 6.'}</p>
+      ) : null}
+      {demo ? (
+        voirFiche && <div className="pied pied-merci">
+          <button type="button" className="bouton bouton-principal" onClick={voirFiche}>
+            {fr ? 'Voir la fiche de recherche (vue agence)' : 'See the search sheet (agency view, French)'}
+          </button>
+        </div>
       ) : (
       <div className="pied pied-merci">
         <button type="button" className="bouton bouton-secondaire" onClick={() => window.print()}>

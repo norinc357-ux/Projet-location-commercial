@@ -21,13 +21,15 @@ type Props = {
   cheminAutreLangue: string;
   /** Démo : bascule de langue dans la page plutôt qu'un lien. */
   changerLangue?: () => void;
+  /** Démo seulement : ouvre la fiche de recherche (vue agent) de cette demande. */
+  voirFiche?: (r: Reponses) => void;
 };
 
 type Sauvegarde = { etat: 'aucune' | 'enCours' | 'ok' | 'locale'; heure?: string };
 
 const PREMIER = ECRANS[0].id;
 
-export function Formulaire({ langue, mode, cheminAutreLangue, changerLangue }: Props) {
+export function Formulaire({ langue, mode, cheminAutreLangue, changerLangue, voirFiche }: Props) {
   const locale = useMemo(() => new PersistanceLocale(), []);
   const serveur: Persistance = useMemo(() => (mode === 'api' ? new PersistanceApi() : locale), [mode, locale]);
 
@@ -190,7 +192,7 @@ export function Formulaire({ langue, mode, cheminAutreLangue, changerLangue }: P
   };
 
   if (!pret) return <div className="formulaire-chargement" aria-busy="true" />;
-  if (numero) return <Merci numero={numero} reponses={reponses} langue={langue} demo={mode === 'locale'} />;
+  if (numero) return <Merci numero={numero} reponses={reponses} langue={langue} demo={mode === 'locale'} voirFiche={voirFiche ? () => voirFiche(reponses) : undefined} />;
 
   const ecranVide = ecran.champs.every((c) => !champVisible(c, reponses) || estVide(reponses[c.id]));
   const toutFacultatif = ecran.champs.every((c) => !c.requis && c.type !== 'recap');

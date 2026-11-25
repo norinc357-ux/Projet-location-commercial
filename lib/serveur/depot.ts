@@ -41,6 +41,12 @@ function enSerie<R>(f: () => Promise<R>): Promise<R> {
 
 export const depot = {
   obtenir: async (jeton: string) => (await lire())[jeton] ?? null,
+  /** Demandes soumises, les plus prioritaires d'abord (vue agence). */
+  listerSoumises: async () =>
+    Object.values(await lire())
+      .filter((d) => d.dossier)
+      .sort((a, b) => b.dossier!.qualification.score - a.dossier!.qualification.score || (b.soumiseLe ?? '').localeCompare(a.soumiseLe ?? '')),
+  parNumero: async (numero: string) => Object.values(await lire()).find((d) => d.dossier?.numero === numero) ?? null,
   enregistrerBrouillon: (jeton: string, reponses: Reponses, ecran: string) =>
     enSerie(async () => {
       const tout = await lire();
